@@ -1,39 +1,52 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using AngularWithCore.Persistence;
+using AutoMapper;
 
 namespace AngularWithCore
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup( Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
+            // var builder= new ConfigurationBuilder()
+            // .SetBasePath(env.ContentRootPath)
+            // .AddJsonFile("appsettings.json",optional:)
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
+        public Microsoft.Extensions.Configuration.IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
-        {
+        {//used for dependency injection
+            services.AddAutoMapper(typeof(Startup));
+            //AutoMapper.Mapper.Initialize(c => c.AddProfile<MappingProfile>());
             services.AddControllersWithViews();
+            services.AddDbContext<CoreDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default")));
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "ClientApp/dist";
+                //configuration.GetConnectionString("Default") ;
             });
+
+            services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> looger)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                // app.UseWebpackDevMiddleware();
             }
             else
             {
